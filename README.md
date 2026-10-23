@@ -36,5 +36,11 @@ perl tispen.pl my_analytics.sess.in
 
 ---
 
+## See also
+
+https://github.com/vadrerko/vispen
+
+---
+
 ## 📄 License
 MIT / Same as Tcl and Perl.
