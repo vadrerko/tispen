@@ -34,11 +34,18 @@ sudo apt update && sudo apt install libtcl-perl libtext-template-perl libdbi-per
 perl tispen.pl my_analytics.sess.in
 ```
 
+Replace the `libdbd-sqlite3-perl` with your SQL driver.
+
 ---
+
+## Memory leak WARNING
+
+The tool save results into %::r and %::res, so  empty these hashes from tim eto time!
 
 ## See also
 
-https://github.com/vadrerko/vispen
+- https://github.com/vadrerko/vispen
+- https://github.com/slebetman/tcled
 
 ---
 
