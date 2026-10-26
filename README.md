@@ -40,7 +40,7 @@ Replace the `libdbd-sqlite3-perl` with your SQL driver.
 
 ## Memory leak WARNING
 
-The tool save results into %::r and %::res, so  empty these hashes from tim eto time!
+The tool save results into the `%::r` and `%::res` hashes, so  empty these hashes from time to time!
 
 ## See also
 

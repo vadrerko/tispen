@@ -14,6 +14,7 @@ use POSIX('floor');
 my $int = Tcl->new();
 $int->Init();
 
+# based on vispen 1.81
 # vispen configuration
 $spen::untemplatep  = 0; # perform in-memory untemplate of lines before cursor?
 $spen::width        = 80;  # table width
@@ -21,9 +22,10 @@ $spen::anchorp      = 0; # add anchor with elapsed time after each request
 $spen::title_rows   = 10; # max number of rows in table title
 
 if(0) {
-    # silence warning, also TODO - deal with these variables
+    # silence warning
     undef $::main::dbh;
     undef $::main::dbh1;
+    # TODO - deal with these variables
     undef $::main::reset;
     undef $::main::colnames;
     undef $::main::res;
