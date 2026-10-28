@@ -1,3 +1,17 @@
+=ign
+# Find the upper bound of the old output block to clean up
+my $clean_until = $x1;
+while ($clean_until + 1 < tcled_count_lines() && tcled_get_line($clean_until + 1) !~ /^(?:(?: *$)|=|\{\{\{)/) {
+    $clean_until++;
+}
+
+# If there are lines to remove, purge the entire range atomically via Tcl
+if ($clean_until > $x1) {
+    my $start_del = $x1 + 1;
+    $int->Eval("set BUFFER [lreplace \$BUFFER $start_del $clean_until]");
+}
+=cut
+
 use utf8;
 use strict;
 use Tcl;
@@ -29,7 +43,6 @@ if(0) {
     undef $::main::reset;
     undef $::main::colnames;
     undef $::main::res;
-    undef $::main::super_reset;
     undef $::main::id;
     undef $::spen::mariadb;
     undef $::spen::initial_lines;
@@ -51,11 +64,13 @@ sub tcled_get_current_line {
 
 sub tcled_get_line {
     my $row = $_[0] - 1;
-    return $int->Eval('lindex $BUFFER ' . $row);
+    return '' . $int->Eval('lindex $BUFFER ' . $row);
 }
 
 sub tcled_remove_line {
-    return $int->Eval('set BUFFER [lreplace $BUFFER ' . $_[0] . ' ' . $_[0] . ']');
+die "tcled_remove_line - $_[1]" if $::cnt++ > 1000;
+    $int->Eval('set BUFFER [lreplace $BUFFER ' . $_[0] . ' ' . $_[0] . ']');
+    return;
 }
 
 sub tcled_count_lines {
@@ -147,8 +162,7 @@ $e\$spen::html_save_to = '$spen::html_save_to'; # file name where HTML output is
 EOS
 	} else {
 	    $row = tcled_insert_after_current($spen::initial_lines || <<'EOS');
-{{{ # vi: syn=perl
-# here perl code executed each time on execution for 'untemplate' phase - but
+{{{ # here perl code executed each time on execution for 'untemplate' phase - but
 # if $spen::untemplatep flag is ON
 ''
 }}}\
@@ -166,7 +180,7 @@ select 1 as n
 
 select "a" a,"b" as b union all select 'Peter','{{{"a"x1000}}}'
 
-below is 'crazy'-generated SQL:
+below is 'crazy'-generated SQL, usually you do not do this
 =Sql g/f=+
 {{{join " union all\n", map {"select 'value $_' as v,".++$::cnt } 'a'..'rz'}}}
 =Cut
@@ -204,7 +218,7 @@ eval {
 	}
 	my $dummy_s = Text::Template->new(
 	    TYPE   => 'STRING',
-	    SOURCE => ($arg==1?"$del0$::reset$del1":($arg==100?"$del0$::super_reset$del1":"")) . $pretext,
+	    SOURCE => ($arg==1?"$del0$::reset$del1":'') . $pretext,
 	    @delims,
 	    BROKEN => sub{die "error in template: [$Text::Template::ERROR] \$@=$@, please recheck!"},
 	)->fill_in();
@@ -244,7 +258,7 @@ $msg.= "x=$1,";
 
         # remove from $x1+1 until /^\s*$/ or EOF or next =something or '{{{'
         while ($x1+1 <= tcled_count_lines() && tcled_get_line($x1+1) !~ /^(?:(?: *$)|=|\{\{\{)/) {
-            tcled_remove_line($x1+1);
+            tcled_remove_line($x1+1, 'a');
         }
         $need_remove_old = 0;
     }
@@ -266,8 +280,7 @@ $msg.= "r,";
 
     # remove old 'answer' lines
     while ($need_remove_old && tcled_get_line($row+1) =~ /^(?:--|\||\(:|MariaDB \[|[┌╞└│])/) {
-        my $r = tcled_get_line($row+1);
-        tcled_remove_line($row+1);
+        tcled_remove_line($row+1, 'b');
     }
 
     ## run the task
