@@ -56,19 +56,12 @@ if(0) {
 # We replace Vim's internal C-bindings ($curbuf->Get, append, etc.) 
 # with native Tcl mutations targeting the active text data in tcled.
 
-sub tcled_get_current_line {
-    # In tcled, the file buffer is stored inside a Tcl list variable named '$BUFFER'.
-    # The active line index is stored in '$bufRow'. We safely fetch it via Eval.
-    return $int->Eval('lindex $BUFFER $bufRow');
-}
-
 sub tcled_get_line {
-    my $row = $_[0] - 1;
-    return '' . $int->Eval('lindex $BUFFER ' . $row);
+    return map {'' . $int->Eval('lindex $BUFFER ' . ($_-1))} @_;
 }
 
 sub tcled_remove_line {
-die "tcled_remove_line - $_[1]" if $::cnt++ > 1000;
+    die "tcled_remove_line - ($_[1]) (l=$_[0])" if $::cnt++ > 10000;
     $int->Eval('set BUFFER [lreplace $BUFFER ' . $_[0] . ' ' . $_[0] . ']');
     return;
 }
@@ -78,7 +71,7 @@ sub tcled_count_lines {
 }
 
 sub tcled_insert {
-    my $row = $_[0] +1;
+    my $row = $_[0];
     my $text_to_insert = $_[1];
     $int->SetVar('var', $text_to_insert);
     return $int->Eval('set BUFFER [linsert $BUFFER ' . $row . ' $var]');  # TODO improve
@@ -130,6 +123,7 @@ sub toyspen_redraw {
 # When the user invokes this trigger, control transfers smoothly to Perl.
 
 sub tispen_execute_here {
+    $::cnt = 0;
     my $row = $int->GetVar('bufRow');
     my $col = $int->GetVar('bufCol');
     my $cmd = $int->Eval('lindex  $BUFFER $bufRow');
@@ -223,8 +217,7 @@ eval {
 	    BROKEN => sub{die "error in template: [$Text::Template::ERROR] \$@=$@, please recheck!"},
 	)->fill_in();
 	if ($Text::Template::ERROR) {
-	    VIM::Msg("\$Text::Template::ERROR=[$Text::Template::ERROR]","ErrorMsg");
-	    return;
+	    die "T::T::ERR=[$Text::Template::ERROR]";
 	}
     }
 
@@ -445,10 +438,11 @@ $msg.= "[$dr]";
 };
 
     if ($@) {
-      tispen_status($msg."error: $@");
+        tispen_status($msg."error: $@");
+        tcled_insert(0,$@);
     }
     else {
-      tispen_status($msg."done.");
+        tispen_status($msg."done.");
     }
 
     $int->SetVar('bufRow',$row0);
