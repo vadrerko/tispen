@@ -34,7 +34,135 @@ sudo apt update && sudo apt install libtcl-perl libtext-template-perl libdbi-per
 perl tispen.pl my_analytics.sess.in
 ```
 
+Press Ctrl+K on empty line and follow example.
+
 Replace the `libdbd-sqlite3-perl` with your SQL driver.
+
+
+```
+{{{ # here perl code executed each time on execution for 'untemplate' phase - but
+# if $spen::untemplatep flag is ON
+''
+}}}\
+=ie
+
+# for Perl execution - Ctrl+K
+use DBI; $::dbh = DBI->connect("dbi:SQLite:dbname=try-1.sqlite","","");
+DBI::db=HASH(0x3000c8a8c8)
+Notice that you can call anything for DB connection: $::dbh = my_connect_function(...) from your own library
+
+# config:
+$spen::untemplatep = 0
+$spen::anchorp = 0
+$spen::width = 123;
+
+# for SQL execution - Ctrl+N
+select 1 as n
+┌─┐
+│n│
+╞═╡
+│1│
+└─┘
+
+# for Perl execution - Ctrl+K - you can also eval tcl and inspect its variables
+$int->Eval('expr 2+3')
+
+=cut
+
+select "a" a,"b" as b union all select 'Peter','{{{"a"x1000}}}'
+---select "a" a,"b" as b union all select 'Peter','aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+┌─┬────────────────────────────────────────────────────────────────────────────────┐
+│a│                                                                               b│
+╞═╪════════════════════════════════════════════════════════════════════════════════╡
+│a│                                                                               b│
+│P│aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+│e│aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+│t│aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+│e│aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+│r│aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+│ │aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+│ │aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+│ │aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+│ │aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+│ │aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+│ │aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+│ │aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+│ │                                        aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+└─┴────────────────────────────────────────────────────────────────────────────────┘
+
+=Sql name/f=+
+WITH RECURSIVE generate_series(value) AS (
+    SELECT 1
+    UNION ALL
+    SELECT value + 1 FROM generate_series WHERE value < 10
+)
+SELECT value FROM generate_series
+=Cut
+{code:sql|borderColor=#00DD00}
+WITH RECURSIVE generate_series(value) AS (
+    SELECT 1
+    UNION ALL
+    SELECT value + 1 FROM generate_series WHERE value < 10
+)
+SELECT value FROM generate_series
+{code}
+┌──┐
+│va│
+│lu│
+╞══╡
+│ 1│
+│ 2│
+│ 3│
+│ 4│
+│ 5│
+│ 6│
+│ 7│
+│ 8│
+│ 9│
+│10│
+└──┘
+
+=perl
+use Data::Dumper; Dumper \%::r
+=Cut
+$VAR1 = {
+          't_a_b' => 1,
+          'name' => [
+                      [
+                        1
+                      ],
+                      [
+                        2
+                      ],
+                      [
+                        3
+                      ],
+                      [
+                        4
+                      ],
+                      [
+                        5
+                      ],
+                      [
+                        6
+                      ],
+                      [
+                        7
+                      ],
+                      [
+                        8
+                      ],
+                      [
+                        9
+                      ],
+                      [
+                        10
+                      ]
+                    ],
+          't_n' => 1
+        };
+```
+
 
 ---
 
