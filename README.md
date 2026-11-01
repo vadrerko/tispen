@@ -22,6 +22,15 @@ If you run `tispen` through Google Translate, it might tell you that in Norwegia
 *   **Polyglot Blocks:** Mix raw Perl (`=perl`) and SQL statements (`=sql`) in a single session file with template interpolation.
 *   **Flexible Layouts:** Renders query results into ASCII tables, Jira markup, or raw dumps.
 
+## 🔌 The Ultimate Connection Flexibility
+
+Unlike traditional SQL clients that lock you into rigid connection dialogs or strict standard `DSN` strings, **tispen** evaluates live Perl code to establish database handles.
+
+This means your database connection can be literally *anything* Perl can execute:
+- **Custom Auth Functions:** No user/password in plain text? Call your internal wrapper: `$::dbh = My::Company::Auth::get_prod_db();`
+- **Dynamic Configs:** Fetch credentials from environment variables or custom secret vaults on the fly.
+- **Lazy Initialization:** Since it's raw Perl, you can re-connect, swap database handles, or initialize heavy configurations directly inside your notebook session block using `Ctrl+K`.
+
 ---
 
 ## ⏱️ Quick Start
@@ -173,7 +182,7 @@ $VAR1 = {
 
 The tool save results into the `%::r` and `%::res` hashes, so  empty these hashes from time to time!
 
-## See also
+## See also these 2 repositories for the complete documentation on features and usage:
 
 - https://github.com/vadrerko/vispen
 - https://github.com/slebetman/tcled
