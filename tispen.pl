@@ -150,39 +150,41 @@ EOS
 }}}\
 =ie
 
+# for Perl execution - Ctrl+K
 use DBI; $::dbh = DBI->connect("dbi:SQLite:dbname=try-1.sqlite","","");
+Notice that you can call anything for DB connection: $::dbh = my_connect_function(...) from your own library
 
 # config:
 $spen::untemplatep = 0
 $spen::anchorp = 0
 $spen::width = 123;
 
-# for SQL execution:
+# for SQL execution - Ctrl+N
 select 1 as n
 
-# for Perl execution:
+# for Perl execution - Ctrl+K - you can also eval tcl and inspect its variables
 $int->Eval('expr 2+3')
 
 =cut
 
 select "a" a,"b" as b union all select 'Peter','{{{"a"x1000}}}'
 
-below is 'crazy'-generated SQL, usually you do not do this
-=Sql g/f=+
-{{{join " union all\n", map {"select 'value $_' as v,".++$::cnt } 'a'..'rz'}}}
-=Cut
-
-=Sql
+=Sql name/f=+
 WITH RECURSIVE generate_series(value) AS (
     SELECT 1 
     UNION ALL 
-    SELECT value + 1 FROM generate_series WHERE value < 100
+    SELECT value + 1 FROM generate_series WHERE value < 10
 )
 SELECT value FROM generate_series
 =Cut
 
 =perl
 use Data::Dumper; Dumper \%::r
+=Cut
+
+below is 'crazy'-generated SQL, usually you do not do this
+=Sql
+{{{join " union all\n", map {"select 'value $_' as v,".++$::cnt } 'a'..'rz'}}}
 =Cut
 EOS
 	}
