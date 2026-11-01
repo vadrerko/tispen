@@ -34,10 +34,13 @@ sudo apt update && sudo apt install libtcl-perl libtext-template-perl libdbi-per
 perl tispen.pl my_analytics.sess.in
 ```
 
-Press Ctrl+K on empty line and follow example.
-
 Replace the `libdbd-sqlite3-perl` with your SQL driver.
 
+Press Ctrl+K on empty line and follow example.
+
+---
+
+## Example session
 
 ```
 {{{ # here perl code executed each time on execution for 'untemplate' phase - but
