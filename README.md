@@ -1,3 +1,4 @@
+[![Tispen Tests](https://github.com/vadrerko/tispen/actions/workflows/test.yml/badge.svg)](https://github.com/vadrerko/tispen/actions/workflows/test.yml)
 # tispen
 
 **tispen** is a lightweight, zero-overhead, keyboard-driven Literate Programming environment, text editor, and interactive SQL client built for the terminal, combining the console editor **tcled** with an embedded evaluation engine.
