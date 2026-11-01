@@ -1,0 +1,25 @@
+name: Tispen Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Install all project dependencies using the Ubuntu apt package manager
+    - name: Install Perl dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libtcl-perl \
+          libtext-template-perl \
+          libdbi-perl \
+          libdbd-sqlite3-perl
+
+    - name: Run test suite
+      run: prove -l t/
+

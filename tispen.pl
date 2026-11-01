@@ -463,8 +463,15 @@ $int->Eval('unset perlarg_tmp') if $#ARGV>-1; # clean the temp variable
 # 5. TCLED SOURCE CODE ITSELF
 # -------------------------------------------------------------------------
 
+if (exists $ENV{TISPEN_TEST_RUN}) {
+    # TODO: implement more testing here
+    exit(0);
+}
+
 # below is tcled (https://github.com/slebetman/tcled) patched for these 3 shortcuts:
-#  Ctrl+K-vispen_trigger 5, Ctrl+N=vispen_trigger Ctrl+L=handleRedraw forced
+# - Ctrl+K-vispen_trigger 5s
+# - Ctrl+N=vispen_trigger
+# - Ctrl+L=handleRedraw forced
 $int->Eval(join '',  <DATA>);
 __DATA__
 set ABOUT {
