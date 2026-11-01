@@ -1,17 +1,3 @@
-=ign
-# Find the upper bound of the old output block to clean up
-my $clean_until = $x1;
-while ($clean_until + 1 < tcled_count_lines() && tcled_get_line($clean_until + 1) !~ /^(?:(?: *$)|=|\{\{\{)/) {
-    $clean_until++;
-}
-
-# If there are lines to remove, purge the entire range atomically via Tcl
-if ($clean_until > $x1) {
-    my $start_del = $x1 + 1;
-    $int->Eval("set BUFFER [lreplace \$BUFFER $start_del $clean_until]");
-}
-=cut
-
 use utf8;
 use strict;
 use Tcl;
@@ -57,11 +43,12 @@ if(0) {
 # with native Tcl mutations targeting the active text data in tcled.
 
 sub tcled_get_line {
-    return map {'' . $int->Eval('lindex $BUFFER ' . ($_-1))} @_;
+    my @r =  map {'' . $int->Eval('lindex $BUFFER ' . $_)} @_;
+    return wantarray ? @r : $r[0];
 }
 
 sub tcled_remove_line {
-    die "tcled_remove_line - ($_[1]) (l=$_[0])" if $::cnt++ > 10000;
+    die "tcled_remove_line - ($_[1]) (l=$_[0]) ($::d)" if $::cnt++ > 10000; # bug protection, should be removed
     $int->Eval('set BUFFER [lreplace $BUFFER ' . $_[0] . ' ' . $_[0] . ']');
     return;
 }
@@ -99,6 +86,7 @@ sub tcled_insert_after_current {
         set rows [split $tispen_payload "\n"]
         foreach row $rows {
             incr bufRow
+            incr viewRow
             set BUFFER [linsert $BUFFER $bufRow $row]
         }
         set modified 1
@@ -166,10 +154,15 @@ use DBI; $::dbh = DBI->connect("dbi:SQLite:dbname=try-1.sqlite","","");
 
 # config:
 $spen::untemplatep = 0
+$spen::anchorp = 0
 $spen::width = 123;
 
-# for <F9> - SQL execution:
+# for SQL execution:
 select 1 as n
+
+# for Perl execution:
+$int->Eval('expr 2+3')
+
 =cut
 
 select "a" a,"b" as b union all select 'Peter','{{{"a"x1000}}}'
@@ -195,7 +188,6 @@ EOS
 	}
 	return;
     }
-my $msg = '';
 eval {	
 
     if ($spen::untemplatep) {
@@ -230,10 +222,8 @@ eval {
     my ($ifsqlmulty) = (0);
     my $need_remove_old = 1;
 
-$msg.= "arg=$arg";
     if (defined $x0 && tcled_get_line($x0) =~ /^=(sqlm?|Sqlm?|sQlm?|sqLm?|sQLm?|perl|Perl|pErl|PERL)\b\s*(.*?)\s*$/) {
         my $verb=$1;
-$msg.= "x=$1,";
         $ifperl = lc($verb) eq 'perl' ? 1 : $ifperl;
         $perlshowcode = $verb eq 'Perl' || $verb eq 'pErl';
         $perluntemplate = $verb eq 'pErl';
@@ -266,7 +256,6 @@ $msg.= "x=$1,";
         $row=$x1;
     }
     
-$msg.= "r,";
     my $lid = $sqlname =~ s/\/lid=(\w+)\b// ? $1 : '';
 
     $cmd =~ s/^ *--!.*(?:\n|\Z)//mg unless $ifperl; # remove super-invisible-comments
@@ -284,24 +273,21 @@ $msg.= "r,";
 
     my $precmd1 = $sqlname =~ /^#/ ? "$::sqlcnt. ":'';
 
-$msg.= "r,";
     if ($jira_syntax) {
         my $x10=$x1;
-        tcled_insert($x1++, "{code:sql|borderColor=#00DD00}");
-        for(split(/\n/,$precmd1.$cmd1)){tcled_insert($x1++, $_);}
-        tcled_insert($x1++, "{code}");
+        tcled_insert(++$x1, "{code:sql|borderColor=#00DD00}");
+        for(split(/\n/,$precmd1.$cmd1)){tcled_insert(++$x1, $_);}
+        tcled_insert(++$x1, "{code}");
     } else {
         if (!$perluntemplate and $cmd1_sav ne $cmd) { # if untemplated has changed
-            for(split(/\n/,$precmd1.$cmd1)){tcled_insert($x1++, "---$_");}
+            for(split(/\n/,$precmd1.$cmd1)){tcled_insert(++$x1, "---$_");}
         }
     }
 
-$msg.= "a,".tcled_count_lines.':';
     my $t0 = [Time::HiRes::gettimeofday()];
     my $dbh = $ifsql1 ? $::dbh1 : $::dbh;
     my $res='';
     if ($ifperl) {
-$msg.= "[cmd1=$cmd1]";
         $res = ($perlshowcode ? "{code:perl|borderColor=#0000DD}\n".($cmd1=~s/^.*?###.*?(?:\n|\Z)//grm=~s/^\{code[^{}]*\} *\n//grm=~s/\n+$//r)."\n{code}\n{code:none}\n": '') .
             (eval ''.($perlnostrict ? "no strict;" : "") . $cmd1) .
             ($perlshowcode ? "{code}\n": '');
@@ -327,7 +313,6 @@ $msg.= "[cmd1=$cmd1]";
             } -> {$format};
 
         my @cmd2 =  ($ifsqlmulty ? split("/\\*\\*/\n",$cmd1) : ($cmd1));
-$msg.= "t,";
         for my $cmd2 (@cmd2) {
             my $sth = $dbh->prepare($cmd2) or die "can't prepare [$cmd2]: " . $dbh->errstr();
             $sth->execute() or die "can't execute [$cmd2]: " . $sth->errstr();
@@ -428,21 +413,19 @@ $msg.= "t,";
                 ($DBI::errstr ? "\$DBI::errstr=$DBI::errstr": "");
         $res = ($jira_syntax?"{code:none}\n":"") . $ret . ($jira_syntax?"\n{code}":"");
     }
-$msg.= "[res=$res]";
     my $dr=0;
     $spen::elapsed = Time::HiRes::tv_interval($t0, [Time::HiRes::gettimeofday()]);
     for (split /\n/, $res) { 
-$msg.= "[$dr]";
-        tcled_insert($x1+$dr++, $_);
+        tcled_insert($x1+ ++$dr, $_);
     }
 };
 
     if ($@) {
-        tispen_status($msg."error: $@");
-        tcled_insert(0,$@);
+        tispen_status("error: $@");
+        tcled_insert_after_current($@);
     }
     else {
-        tispen_status($msg."done.");
+        tispen_status("done.");
     }
 
     $int->SetVar('bufRow',$row0);
